@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dosis Diaria de Inspiración</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Montserrat:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .quote-font {
+            font-family: 'Merriweather', serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 1.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Animación suave para los botones de feedback */
+        .feedback-btn {
+            transition: all 0.2s ease;
+        }
+        .feedback-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div class="bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-12 max-w-2xl w-full text-center relative overflow-hidden border border-white/50">
+        
+        <!-- Icono decorativo -->
+        <div class="mb-6 text-indigo-400 opacity-80">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+        </div>
+
+        <!-- Contenedor de la frase -->
+        <div id="quote-container" class="mb-6 min-h-[120px] flex flex-col justify-center items-center fade-in">
+            <p id="quote-text" class="quote-font text-2xl md:text-3xl text-gray-800 italic leading-relaxed mb-4">
+                "Cargando inspiración..."
+            </p>
+            <p id="quote-author" class="text-sm text-gray-500 uppercase tracking-widest font-semibold">
+                
+            </p>
+        </div>
+
+        <!-- SECCIÓN DE FEEDBACK (NUEVO) -->
+        <div id="feedback-section" class="mb-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+            <p id="feedback-question" class="text-sm text-gray-600 mb-3 font-medium">¿Te ayudó esta frase?</p>
+            
+            <div id="feedback-buttons" class="flex justify-center gap-4">
+                <button onclick="registrarRespuesta('SI')" class="feedback-btn flex items-center gap-2 px-4 py-2 bg-white text-green-600 border border-green-200 rounded-lg hover:bg-green-50 hover:shadow-sm font-semibold text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    SÍ
+                </button>
+                <button onclick="registrarRespuesta('NO')" class="feedback-btn flex items-center gap-2 px-4 py-2 bg-white text-red-500 border border-red-200 rounded-lg hover:bg-red-50 hover:shadow-sm font-semibold text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    NO
+                </button>
+            </div>
+            
+            <!-- Mensaje de confirmación oculto por defecto -->
+            <div id="feedback-message" class="hidden text-indigo-600 text-sm font-medium animate-pulse">
+                ¡Gracias! Tu respuesta se ha guardado.
+            </div>
+        </div>
+
+        <!-- Indicador de progreso -->
+        <div class="mt-6 text-xs text-gray-400">
+            Frases vistas: <span id="counter">0</span> / <span id="total">0</span>
+        </div>
+    </div>
+
+    <script>
+        // --- BASE DE DATOS DE FRASES ---
+        const frasesDatabase = [
+            { text: "El único modo de hacer un gran trabajo es amar lo que haces.", author: "Steve Jobs" },
+            { text: "No cuentes los días, haz que los días cuenten.", author: "Muhammad Ali" },
+            { text: "La felicidad no es algo que pospones para el futuro; es algo que diseñas para el presente.", author: "Jim Rohn" },
+            { text: "Cree que puedes y casi lo habrás logrado.", author: "Theodore Roosevelt" },
+            { text: "Lo que no te mata te hace más fuerte.", author: "Friedrich Nietzsche" },
+            { text: "La vida es 10% lo que te ocurre y 90% cómo reaccionas a ello.", author: "Charles R. Swindoll" },
+            { text: "No busques el momento perfecto, solo busca el momento y hazlo perfecto.", author: "Anónimo" },
+            { text: "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", author: "Robert Collier" },
+            { text: "Tu tiempo es limitado, así que no lo desperdicies viviendo la vida de alguien más.", author: "Steve Jobs" },
+            { text: "La mejor venganza es un éxito masivo.", author: "Frank Sinatra" },
+            { text: "No te compares con nadie en este mundo. Si lo haces, te estás insultando a ti mismo.", author: "Bill Gates" },
+            { text: "Si puedes soñarlo, puedes hacerlo.", author: "Walt Disney" },
+            { text: "A veces la adversidad es lo que necesitas encarar para ser exitoso.", author: "Zig Ziglar" },
+            { text: "La disciplina es el puente entre metas y logros.", author: "Jim Rohn" },
+            { text: "El fracaso es solo la oportunidad de comenzar de nuevo de forma más inteligente.", author: "Henry Ford" }
+        ];
+
+        // --- LÓGICA DE ALMACENAMIENTO LOCAL ---
+        const STORAGE_KEY = 'frases_vistas_indices';
+        
+        function obtenerIndicesVistos() {
+            const guardado = localStorage.getItem(STORAGE_KEY);
+            return guardado ? JSON.parse(guardado) : [];
+        }
+
+        function guardarIndiceVisto(index) {
+            const vistos = obtenerIndicesVistos();
+            if (!vistos.includes(index)) {
+                vistos.push(index);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(vistos));
+            }
+            actualizarContador(vistos.length);
+        }
+
+        function reiniciarCiclo() {
+            localStorage.removeItem(STORAGE_KEY);
+            console.log("Ciclo reiniciado: todas las frases han sido mostradas.");
+            return [];
+        }
+
+        function actualizarContador(vistosCount) {
+            document.getElementById('counter').innerText = vistosCount;
+            document.getElementById('total').innerText = frasesDatabase.length;
+        }
+
+        function obtenerFraseAleatoria() {
+            let vistos = obtenerIndicesVistos();
+            const todosLosIndices = frasesDatabase.map((_, i) => i);
+            let disponibles = todosLosIndices.filter(index => !vistos.includes(index));
+
+            if (disponibles.length === 0) {
+                vistos = reiniciarCiclo();
+                disponibles = todosLosIndices;
+            }
+
+            const indiceAleatorio = disponibles[Math.floor(Math.random() * disponibles.length)];
+            return { frase: frasesDatabase[indiceAleatorio], index: indiceAleatorio };
+        }
+
+        // --- NUEVA LÓGICA: REGISTRO DE RESPUESTA ---
+
+        function registrarRespuesta(respuesta) {
+            const fechaActual = new Date().toLocaleString();
+            
+            // --- SIMULACIÓN DE GUARDADO EN GOOGLE DRIVE ---
+            console.group("Guardando en Base de Datos (Simulación)");
+            console.log("Respuesta:", respuesta);
+            console.log("Fecha:", fechaActual);
+            console.log("Estado: Enviando a Google Drive...");
+            console.groupEnd();
+
+            /* NOTA PARA EL USUARIO:
+               Para conectar esto a una hoja de cálculo real de Google Drive, necesitarías:
+               1. Crear un Google Form o un Google Apps Script Web App.
+               2. Obtener la URL del Web App (ej: https://script.google.com/macros/s/XXX/exec).
+               3. Usar el siguiente código en lugar del console.log:
+               
+               fetch('TU_URL_DE_APPS_SCRIPT', {
+                   method: 'POST',
+                   mode: 'no-cors',
+                   body: JSON.stringify({ respuesta: respuesta, fecha: fechaActual })
+               });
+            */
+
+            // Interfaz de usuario: Mostrar agradecimiento
+            document.getElementById('feedback-buttons').classList.add('hidden');
+            const messageEl = document.getElementById('feedback-message');
+            messageEl.classList.remove('hidden');
+            
+            // Opcional: Texto personalizado según respuesta
+            if (respuesta === 'SI') {
+                messageEl.innerText = "¡Qué bien que te haya servido! Guardado.";
+            } else {
+                messageEl.innerText = "Gracias. Buscaremos mejores frases. Guardado.";
+            }
+        }
+
+        function resetearFeedback() {
+            // Volver a mostrar los botones para la nueva frase
+            document.getElementById('feedback-buttons').classList.remove('hidden');
+            document.getElementById('feedback-message').classList.add('hidden');
+        }
+
+        function mostrarNuevaFrase() {
+            // Resetear la sección de feedback
+            resetearFeedback();
+
+            const container = document.getElementById('quote-container');
+            const quoteText = document.getElementById('quote-text');
+            const quoteAuthor = document.getElementById('quote-author');
+
+            container.classList.remove('fade-in');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('fade-in');
+
+            const resultado = obtenerFraseAleatoria();
+            
+            quoteText.innerText = `"${resultado.frase.text}"`;
+            quoteAuthor.innerText = `- ${resultado.frase.author || 'Anónimo'}`;
+
+            guardarIndiceVisto(resultado.index);
+        }
+
+        window.onload = () => {
+            mostrarNuevaFrase();
+            actualizarContador(obtenerIndicesVistos().length);
+        };
+
+    </script>
+</body>
+</html>
