@@ -32,8 +32,8 @@
         /* Optimizaciones para toque en móviles */
         .feedback-btn {
             transition: transform 0.1s active, background-color 0.2s;
-            touch-action: manipulation; /* Elimina el delay de 300ms en algunos navegadores móviles */
-            -webkit-tap-highlight-color: transparent; /* Elimina el flash gris al tocar en Android/iOS */
+            touch-action: manipulation; /* Elimina el delay de 300ms */
+            -webkit-tap-highlight-color: transparent; /* Elimina el flash gris */
         }
         .feedback-btn:active {
             transform: scale(0.96);
@@ -44,14 +44,14 @@
 
     <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-xl w-full max-w-lg border border-white/60 flex flex-col overflow-hidden relative">
         
-        <!-- Contenido Principal con Padding Ajustado -->
+        <!-- Contenido Principal -->
         <div class="p-6 md:p-10 flex flex-col items-center text-center flex-grow">
             
-            <!-- Icono decorativo -->
-            <div class="mb-5 text-indigo-400 opacity-80">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 md:h-12 md:w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
+            <!-- Logo de la Universidad -->
+            <div class="mb-5 w-full flex justify-center">
+                <img src="OIP.webp" 
+                     alt="Universidad Politécnica Salesiana" 
+                     class="h-24 md:h-28 w-auto object-contain hover:scale-105 transition-transform duration-300">
             </div>
 
             <!-- Contenedor de la frase -->
@@ -69,7 +69,7 @@
                 <p id="feedback-question" class="text-sm text-gray-600 mb-4 font-semibold">¿Te ayudó esta frase?</p>
                 
                 <div id="feedback-buttons" class="flex gap-3 w-full">
-                    <!-- Botones expandidos (flex-1) para fácil acceso con pulgares -->
+                    <!-- Botones expandidos para fácil acceso táctil -->
                     <button onclick="registrarRespuesta('SI')" class="feedback-btn flex-1 flex items-center justify-center gap-2 py-4 bg-white text-green-600 border border-green-200 rounded-xl shadow-sm hover:bg-green-50 font-bold text-base md:text-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -105,7 +105,7 @@
 
     <script>
         // --- CONFIGURACIÓN ---
-        // Pega aquí tu URL nueva si es necesario
+        // ¡IMPORTANTE! Pega aquí la URL de tu Google Apps Script
         const GOOGLE_SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
 
         // --- BASE DE DATOS DE FRASES ---
