@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Dosis Diaria de Inspiración</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -12,6 +12,8 @@
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+            /* Evita el rebote de scroll en iOS */
+            overscroll-behavior-y: none;
         }
         
         .quote-font {
@@ -19,76 +21,93 @@
         }
 
         .fade-in {
-            animation: fadeIn 1.5s ease-in-out;
+            animation: fadeIn 1.0s ease-out;
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Animación suave para los botones de feedback */
+        /* Optimizaciones para toque en móviles */
         .feedback-btn {
-            transition: all 0.2s ease;
+            transition: transform 0.1s active, background-color 0.2s;
+            touch-action: manipulation; /* Elimina el delay de 300ms en algunos navegadores móviles */
+            -webkit-tap-highlight-color: transparent; /* Elimina el flash gris al tocar en Android/iOS */
         }
         .feedback-btn:active {
-            transform: scale(0.95);
+            transform: scale(0.96);
         }
     </style>
 </head>
-<body class="flex items-center justify-center p-4">
+<body class="flex items-center justify-center min-h-screen px-4 py-6">
 
-    <div class="bg-white bg-opacity-90 backdrop-blur-md rounded-2xl shadow-2xl p-8 md:p-12 max-w-2xl w-full text-center relative overflow-hidden border border-white/50">
+    <div class="bg-white/95 backdrop-blur-sm rounded-3xl shadow-xl w-full max-w-lg border border-white/60 flex flex-col overflow-hidden relative">
         
-        <!-- Icono decorativo -->
-        <div class="mb-6 text-indigo-400 opacity-80">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-        </div>
+        <!-- Contenido Principal con Padding Ajustado -->
+        <div class="p-6 md:p-10 flex flex-col items-center text-center flex-grow">
+            
+            <!-- Icono decorativo -->
+            <div class="mb-5 text-indigo-400 opacity-80">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 md:h-12 md:w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+            </div>
 
-        <!-- Contenedor de la frase -->
-        <div id="quote-container" class="mb-6 min-h-[120px] flex flex-col justify-center items-center fade-in">
-            <p id="quote-text" class="quote-font text-2xl md:text-3xl text-gray-800 italic leading-relaxed mb-4">
-                "Cargando inspiración..."
-            </p>
-            <p id="quote-author" class="text-sm text-gray-500 uppercase tracking-widest font-semibold">
+            <!-- Contenedor de la frase -->
+            <div id="quote-container" class="mb-8 w-full fade-in flex-grow flex flex-col justify-center">
+                <p id="quote-text" class="quote-font text-xl md:text-3xl text-gray-800 italic leading-relaxed mb-4">
+                    "Cargando inspiración..."
+                </p>
+                <p id="quote-author" class="text-xs md:text-sm text-gray-500 uppercase tracking-widest font-bold mt-2">
+                    
+                </p>
+            </div>
+
+            <!-- SECCIÓN DE FEEDBACK -->
+            <div id="feedback-section" class="w-full bg-indigo-50/80 rounded-2xl p-5 border border-indigo-100">
+                <p id="feedback-question" class="text-sm text-gray-600 mb-4 font-semibold">¿Te ayudó esta frase?</p>
                 
-            </p>
+                <div id="feedback-buttons" class="flex gap-3 w-full">
+                    <!-- Botones expandidos (flex-1) para fácil acceso con pulgares -->
+                    <button onclick="registrarRespuesta('SI')" class="feedback-btn flex-1 flex items-center justify-center gap-2 py-4 bg-white text-green-600 border border-green-200 rounded-xl shadow-sm hover:bg-green-50 font-bold text-base md:text-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                        </svg>
+                        SÍ
+                    </button>
+                    
+                    <button onclick="registrarRespuesta('NO')" class="feedback-btn flex-1 flex items-center justify-center gap-2 py-4 bg-white text-red-500 border border-red-200 rounded-xl shadow-sm hover:bg-red-50 font-bold text-base md:text-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        NO
+                    </button>
+                </div>
+                
+                <!-- Mensajes de estado -->
+                <div id="feedback-message" class="hidden py-2 text-indigo-600 text-sm font-semibold animate-pulse">
+                    ¡Gracias! Tu respuesta se ha guardado.
+                </div>
+                <div id="feedback-error" class="hidden py-2 text-red-500 text-xs mt-2">
+                    Hubo un error al guardar.
+                </div>
+            </div>
         </div>
 
-        <!-- SECCIÓN DE FEEDBACK (NUEVO) -->
-        <div id="feedback-section" class="mb-8 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-            <p id="feedback-question" class="text-sm text-gray-600 mb-3 font-medium">¿Te ayudó esta frase?</p>
-            
-            <div id="feedback-buttons" class="flex justify-center gap-4">
-                <button onclick="registrarRespuesta('SI')" class="feedback-btn flex items-center gap-2 px-4 py-2 bg-white text-green-600 border border-green-200 rounded-lg hover:bg-green-50 hover:shadow-sm font-semibold text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                    SÍ
-                </button>
-                <button onclick="registrarRespuesta('NO')" class="feedback-btn flex items-center gap-2 px-4 py-2 bg-white text-red-500 border border-red-200 rounded-lg hover:bg-red-50 hover:shadow-sm font-semibold text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    NO
-                </button>
+        <!-- Pie de tarjeta -->
+        <div class="bg-gray-50 px-6 py-3 text-center border-t border-gray-100">
+             <div class="text-[10px] md:text-xs text-gray-400 font-medium">
+                Frases vistas: <span id="counter">0</span> / <span id="total">0</span>
             </div>
-            
-            <!-- Mensaje de confirmación oculto por defecto -->
-            <div id="feedback-message" class="hidden text-indigo-600 text-sm font-medium animate-pulse">
-                ¡Gracias! Tu respuesta se ha guardado.
-            </div>
-        </div>
-
-        <!-- Indicador de progreso -->
-        <div class="mt-6 text-xs text-gray-400">
-            Frases vistas: <span id="counter">0</span> / <span id="total">0</span>
         </div>
     </div>
 
     <script>
+        // --- CONFIGURACIÓN ---
+        // Pega aquí tu URL nueva si es necesario
+        const GOOGLE_SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
+
         // --- BASE DE DATOS DE FRASES ---
         const frasesDatabase = [
             { text: "El único modo de hacer un gran trabajo es amar lo que haces.", author: "Steve Jobs" },
@@ -107,6 +126,8 @@
             { text: "La disciplina es el puente entre metas y logros.", author: "Jim Rohn" },
             { text: "El fracaso es solo la oportunidad de comenzar de nuevo de forma más inteligente.", author: "Henry Ford" }
         ];
+
+        let fraseActual = null;
 
         // --- LÓGICA DE ALMACENAMIENTO LOCAL ---
         const STORAGE_KEY = 'frases_vistas_indices';
@@ -127,7 +148,6 @@
 
         function reiniciarCiclo() {
             localStorage.removeItem(STORAGE_KEY);
-            console.log("Ciclo reiniciado: todas las frases han sido mostradas.");
             return [];
         }
 
@@ -150,63 +170,65 @@
             return { frase: frasesDatabase[indiceAleatorio], index: indiceAleatorio };
         }
 
-        // --- NUEVA LÓGICA: REGISTRO DE RESPUESTA ---
+        // --- LÓGICA DE RESPUESTA ---
 
         function registrarRespuesta(respuesta) {
-            const fechaActual = new Date().toLocaleString();
-            
-            // --- SIMULACIÓN DE GUARDADO EN GOOGLE DRIVE ---
-            console.group("Guardando en Base de Datos (Simulación)");
-            console.log("Respuesta:", respuesta);
-            console.log("Fecha:", fechaActual);
-            console.log("Estado: Enviando a Google Drive...");
-            console.groupEnd();
-
-            /* NOTA PARA EL USUARIO:
-               Para conectar esto a una hoja de cálculo real de Google Drive, necesitarías:
-               1. Crear un Google Form o un Google Apps Script Web App.
-               2. Obtener la URL del Web App (ej: https://script.google.com/macros/s/XXX/exec).
-               3. Usar el siguiente código en lugar del console.log:
-               
-               fetch('TU_URL_DE_APPS_SCRIPT', {
-                   method: 'POST',
-                   mode: 'no-cors',
-                   body: JSON.stringify({ respuesta: respuesta, fecha: fechaActual })
-               });
-            */
-
-            // Interfaz de usuario: Mostrar agradecimiento
+            // UI: Ocultar botones, mostrar carga
             document.getElementById('feedback-buttons').classList.add('hidden');
             const messageEl = document.getElementById('feedback-message');
+            const errorEl = document.getElementById('feedback-error');
             messageEl.classList.remove('hidden');
+            messageEl.innerText = "Guardando...";
             
-            // Opcional: Texto personalizado según respuesta
-            if (respuesta === 'SI') {
-                messageEl.innerText = "¡Qué bien que te haya servido! Guardado.";
-            } else {
-                messageEl.innerText = "Gracias. Buscaremos mejores frases. Guardado.";
-            }
-        }
+            const datosAEnviar = {
+                respuesta: respuesta,
+                frase: fraseActual ? fraseActual.text : "Desconocida"
+            };
 
-        function resetearFeedback() {
-            // Volver a mostrar los botones para la nueva frase
-            document.getElementById('feedback-buttons').classList.remove('hidden');
-            document.getElementById('feedback-message').classList.add('hidden');
+            if (GOOGLE_SCRIPT_URL === 'TU_URL_DE_APPS_SCRIPT_AQUI') {
+                console.warn("Falta configurar la URL de Google Apps Script");
+                setTimeout(() => {
+                    messageEl.innerText = "Guardado (Modo Demo Local).";
+                }, 500);
+                return;
+            }
+
+            fetch(GOOGLE_SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors", 
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify(datosAEnviar)
+            })
+            .then(() => {
+                if (respuesta === 'SI') {
+                    messageEl.innerText = "¡Genial! Nos alegra ayudar.";
+                } else {
+                    messageEl.innerText = "Gracias por tu opinión.";
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                messageEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                errorEl.innerText = "Error de conexión.";
+            });
         }
 
         function mostrarNuevaFrase() {
-            // Resetear la sección de feedback
-            resetearFeedback();
+            document.getElementById('feedback-buttons').classList.remove('hidden');
+            document.getElementById('feedback-message').classList.add('hidden');
+            document.getElementById('feedback-error').classList.add('hidden');
 
             const container = document.getElementById('quote-container');
             const quoteText = document.getElementById('quote-text');
             const quoteAuthor = document.getElementById('quote-author');
 
             container.classList.remove('fade-in');
-            void container.offsetWidth; // Trigger reflow
+            void container.offsetWidth; 
             container.classList.add('fade-in');
 
             const resultado = obtenerFraseAleatoria();
+            fraseActual = resultado.frase; 
             
             quoteText.innerText = `"${resultado.frase.text}"`;
             quoteAuthor.innerText = `- ${resultado.frase.author || 'Anónimo'}`;
