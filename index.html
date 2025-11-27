@@ -12,7 +12,6 @@
             font-family: 'Montserrat', sans-serif;
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
-            /* Evita el rebote de scroll en iOS */
             overscroll-behavior-y: none;
         }
         
@@ -29,11 +28,10 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Optimizaciones para toque en móviles */
         .feedback-btn {
             transition: transform 0.1s active, background-color 0.2s;
-            touch-action: manipulation; /* Elimina el delay de 300ms */
-            -webkit-tap-highlight-color: transparent; /* Elimina el flash gris */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .feedback-btn:active {
             transform: scale(0.96);
@@ -47,11 +45,12 @@
         <!-- Contenido Principal -->
         <div class="p-6 md:p-10 flex flex-col items-center text-center flex-grow">
             
-            <!-- Logo de la Universidad -->
+            <!-- Logo -->
             <div class="mb-5 w-full flex justify-center">
                 <img src="OIP.webp" 
                      alt="Universidad Politécnica Salesiana" 
-                     class="h-24 md:h-28 w-auto object-contain hover:scale-105 transition-transform duration-300">
+                     class="h-24 md:h-28 w-auto object-contain hover:scale-105 transition-transform duration-300"
+                     onerror="this.style.display='none';">
             </div>
 
             <!-- Contenedor de la frase -->
@@ -62,6 +61,13 @@
                 <p id="quote-author" class="text-xs md:text-sm text-gray-500 uppercase tracking-widest font-bold mt-2">
                     
                 </p>
+                
+                <!-- Mensaje de error -->
+                <div id="error-message" class="hidden mt-4 p-3 bg-red-50 border border-red-200 rounded text-red-600 text-xs text-left">
+                    <strong>¡Error de Código!</strong><br>
+                    Error de sintaxis en la lista de frases.<br>
+                    <span class="opacity-75">Presiona F12 para ver detalles.</span>
+                </div>
             </div>
 
             <!-- SECCIÓN DE FEEDBACK -->
@@ -69,7 +75,6 @@
                 <p id="feedback-question" class="text-sm text-gray-600 mb-4 font-semibold">¿Te ayudó esta frase?</p>
                 
                 <div id="feedback-buttons" class="flex gap-3 w-full">
-                    <!-- Botones expandidos para fácil acceso táctil -->
                     <button onclick="registrarRespuesta('SI')" class="feedback-btn flex-1 flex items-center justify-center gap-2 py-4 bg-white text-green-600 border border-green-200 rounded-xl shadow-sm hover:bg-green-50 font-bold text-base md:text-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
@@ -95,7 +100,6 @@
             </div>
         </div>
 
-        <!-- Pie de tarjeta -->
         <div class="bg-gray-50 px-6 py-3 text-center border-t border-gray-100">
              <div class="text-[10px] md:text-xs text-gray-400 font-medium">
                 Frases vistas: <span id="counter">0</span> / <span id="total">0</span>
@@ -104,220 +108,243 @@
     </div>
 
     <script>
-        // --- CONFIGURACIÓN ---
-        // ¡IMPORTANTE! Pega aquí la URL de tu Google Apps Script
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYW9yCsGAGb4mbD8M7xE9z8FdEX2J9sMVkX24LE1IhXd3uQBomHYjQocZ12NjZCcE_/exec'; 
+        // CONFIGURACIÓN
+        const GOOGLE_SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; 
 
-        // --- BASE DE DATOS DE FRASES ---
-        const frasesDatabase = const frasesDatabase = [
-    { text: "El perdón no cambia el pasado, pero ilumina el futuro.", author: "Anónimo" },
-    { text: "La paz comienza cuando eliges no permitir que otra persona controle tus emociones.", author: "Anónimo" },
-    { text: "Agradece lo que tienes; acabarás teniendo más.", author: "Oprah Winfrey" },
-    { text: "La autoestima es la base de una vida plena.", author: "Nathaniel Branden" },
-    { text: "Nunca es tarde para ser la persona que podrías haber sido.", author: "George Eliot" },
-    { text: "Tu valor no disminuye por alguien que no sabe apreciarlo.", author: "Anónimo" },
-    { text: "Todo avance nace de la decisión de intentarlo.", author: "Anónimo" },
-    { text: "El primer paso no te lleva a donde quieres, pero te saca de donde estás.", author: "Anónimo" },
-    { text: "No cargues con el ayer; hoy es una nueva oportunidad.", author: "Anónimo" },
-    { text: "A veces lo que más necesitas soltar es lo que más te pesa.", author: "Anónimo" },
-    { text: "La paz interior comienza cuando eliges no reaccionar ante todo lo que te irrita.", author: "Anónimo" },
-    { text: "Confía en el proceso, aunque no entiendas el camino.", author: "Anónimo" },
-    { text: "Ser feliz no es tener una vida perfecta, es reconocer que vale la pena vivirla a pesar de las dificultades.", author: "Anónimo" },
-    { text: "No eres lo que te pasó, eres lo que decides ser.", author: "Anónimo" },
-    { text: "El agradecimiento transforma lo que tenemos en suficiente.", author: "Melody Beattie" },
-    { text: "Lo que haces hoy puede mejorar todos tus mañanas.", author: "Ralph Marston" },
-    { text: "Rodéate de personas que saquen lo mejor de ti.", author: "Anónimo" },
-    { text: "Perdonar es liberar un prisionero y descubrir que el prisionero eras tú.", author: "Lewis B. Smedes" },
-    { text: "Cierra algunas puertas. No por orgullo, sino porque ya no llevan a ninguna parte.", author: "Paulo Coelho" },
-    { text: "Eres más fuerte de lo que crees y más capaz de lo que imaginas.", author: "Anónimo" },
-    { text: "A veces el crecimiento duele, pero no crecer duele más.", author: "Anónimo" },
-    { text: "Haz que tu vida sea un reflejo de lo que quieres sentir.", author: "Anónimo" },
-    { text: "No te rindas, lo mejor está por venir.", author: "Anónimo" },
-    { text: "Cada día es una segunda oportunidad.", author: "Anónimo" },
-    { text: "La fe en ti mismo es el inicio de todo logro.", author: "Anónimo" },
-    { text: "Lo que niegas te somete; lo que aceptas te transforma.", author: "Carl Jung" },
-    { text: "Si quieres paz, deja ir la necesidad de tener siempre la razón.", author: "Anónimo" },
-    { text: "La vida te rompe muchas veces, pero también te reconstruye más fuerte.", author: "Anónimo" },
-    { text: "Agradece incluso los pequeños pasos; también ellos te acercan a la meta.", author: "Anónimo" },
-    { text: "No puedes controlar el viento, pero sí ajustar las velas.", author: "Anónimo" },
-    { text: "No eres responsable de las expectativas de los demás.", author: "Anónimo" },
-    { text: "Perdonar no es olvidar, es elegir seguir adelante.", author: "Anónimo" },
-    { text: "La mejor inversión es trabajar en ti mismo.", author: "Warren Buffett" },
-    { text: "Donde hay gratitud no hay espacio para la tristeza.", author: "Anónimo" },
-    { text: "Las cicatrices son pruebas de que lo intentaste.", author: "Anónimo" },
-    { text: "Cada día trae nuevas fuerzas y nuevos pensamientos.", author: "Eleanor Roosevelt" },
-    { text: "No te castigues por no ser perfecto; nadie lo es.", author: "Anónimo" },
-    { text: "Respira. Todo va a estar bien.", author: "Anónimo" },
-    { text: "El agradecimiento abre la puerta a la abundancia.", author: "Anónimo" },
-    { text: "Nada cambia si nada cambias.", author: "Anónimo" },
-    { text: "Tu alma siempre sabe qué hacer para curarse. El reto es silenciar la mente.", author: "Anónimo" },
-    { text: "Acepta lo que es, deja ir lo que fue y haz espacio para lo que será.", author: "Anónimo" },
-    { text: "No busques la aprobación de otros; encuéntrate a ti mismo.", author: "Anónimo" },
-    { text: "Permítete ser principiante; nadie empieza siendo excelente.", author: "Anónimo" },
-    { text: "Tus pensamientos crean tu realidad; cuídalos.", author: "Anónimo" },
-    { text: "El amor propio es el inicio de una vida extraordinaria.", author: "Anónimo" },
-    { text: "Agradece por lo que tienes y trabaja por lo que deseas.", author: "Anónimo" },
-    { text: "Cada logro comienza con la decisión de intentarlo.", author: "Anónimo" },
-    { text: "La paz no viene de lo que está a tu alrededor, sino de lo que está dentro de ti.", author: "Anónimo" },
-    { text: "Aprende a descansar, no a renunciar.", author: "Anónimo" },
-    { text: "Perdona, no porque el otro lo merezca, sino porque tú mereces paz.", author: "Anónimo" },
-    { text: "La gratitud convierte la rutina en alegría.", author: "Anónimo" },
-    { text: "Eres suficiente, tal como eres.", author: "Anónimo" },
-    { text: "Has sobrevivido a todos tus peores días. Puedes con esto también.", author: "Anónimo" },
-    { text: "Tu actitud determina tu dirección.", author: "Anónimo" },
-    { text: "No dejes que el miedo decida tu futuro.", author: "Anónimo" },
-    { text: "La paz se construye con pensamientos de paz.", author: "Anónimo" },
-    { text: "Cada amanecer es un recordatorio de que puedes empezar otra vez.", author: "Anónimo" },
-    { text: "Sé amable contigo; estás haciendo lo mejor que puedes.", author: "Anónimo" },
-    { text: "Cuando cambias la forma de ver las cosas, las cosas cambian.", author: "Wayne Dyer" },
-    { text: "Todo comienza con un pequeño paso en la dirección correcta.", author: "Anónimo" },
-    { text: "No tengas miedo de soltar aquello que ya terminó.", author: "Anónimo" },
-    { text: "El perdón te da libertad.", author: "Anónimo" },
-    { text: "La calma es un superpoder.", author: "Anónimo" },
-    { text: "Cada día trae un regalo escondido; encuéntralo.", author: "Anónimo" },
-    { text: "El amor propio es el mejor antídoto contra la tristeza.", author: "Anónimo" },
-    { text: "Lo que hoy parece un sacrificio mañana será tu fortaleza.", author: "Anónimo" },
-    { text: "Agradece sin esperar nada a cambio.", author: "Anónimo" },
-    { text: "La paz no es la ausencia de problemas, sino la habilidad de estar tranquilo en medio de ellos.", author: "Anónimo" },
-    { text: "Perdonar para sanar, agradecer para crecer.", author: "Anónimo" },
-    { text: "Eres más valiente de lo que crees.", author: "Anónimo" },
-    { text: "Sé tú, sin pedir permiso.", author: "Anónimo" },
-    { text: "La vida es más ligera cuando eliges soltar.", author: "Anónimo" },
-    { text: "Nunca dudes de tu valor.", author: "Anónimo" },
-    { text: "Tu historia no ha terminado todavía.", author: "Anónimo" },
-    { text: "La gratitud es la memoria del corazón.", author: "Lao Tsé" },
-    { text: "La paz empieza conmigo.", author: "Anónimo" },
-    { text: "Cuando agradeces, lo bueno se multiplica.", author: "Anónimo" },
-    { text: "Aceptar es el primer paso para transformar.", author: "Anónimo" },
-    { text: "Perdonar es sacar de tu alma lo que te hace daño.", author: "Anónimo" },
-    { text: "Nunca subestimes el poder de un corazón agradecido.", author: "Anónimo" },
-    { text: "Rodéate de paz y la paz te rodeará.", author: "Anónimo" },
-    { text: "Cada día puedes renacer.", author: "Anónimo" },
-    { text: "Tu luz interior es más fuerte que cualquier sombra.", author: "Anónimo" },
-    { text: "Amarte a ti mismo es el inicio de todo cambio.", author: "Anónimo" },
-    { text: "El pasado no define quién eres, sino lo que has aprendido.", author: "Anónimo" },
-    { text: "No te castigues por lo que no sabías antes.", author: "Anónimo" },
-    { text: "Agradecer es sanar.", author: "Anónimo" },
-    { text: "Respira profundo, estás vivo; ese es tu primer gran regalo.", author: "Anónimo" },
-    { text: "Busca paz, no perfección.", author: "Anónimo" },
-    { text: "Eres capaz de cosas maravillosas.", author: "Anónimo" },
-    { text: "Deja que la gratitud sea tu brújula.", author: "Anónimo" },
-    { text: "Perdónate por no darte antes lo que hoy sabes que necesitas.", author: "Anónimo" },
-    { text: "Todo lo que buscas también te está buscando a ti.", author: "Rumi" },
-    { text: "Acepta tus tiempos; cada proceso es único.", author: "Anónimo" },
-    { text: "Una mente agradecida es imparable.", author: "Anónimo" },
-    { text: "Tu paz interior vale más que tener la razón.", author: "Anónimo" },
-    { text: "La vida se vuelve más hermosa cuando agradeces.", author: "Anónimo" },
-    { text: "El perdón es un regalo que te haces a ti mismo.", author: "Anónimo" },
-    { text: "Eres más que suficiente, incluso en tus días más difíciles.", author: "Anónimo" },
-    { text: "Permítete sentir, pero también permítete sanar.", author: "Anónimo" },
-    { text: "Acepta tu luz y también tus sombras.", author: "Anónimo" },
-    { text: "La gratitud convierte el caos en claridad.", author: "Anónimo" },
-    { text: "Cree en tu capacidad de transformar tu vida.", author: "Anónimo" },
-    { text: "La paz llega cuando dejas de luchar contra ti mismo.", author: "Anónimo" },
-    { text: "Haz las paces con tu pasado para que no arruine tu presente.", author: "Anónimo" },
-    { text: "Agradece cada experiencia; todas te enseñan algo.", author: "Anónimo" },
-    { text: "El amor propio cura heridas que nadie más puede ver.", author: "Anónimo" },
-    { text: "Perdonar es elegir libertad.", author: "Anónimo" },
-    { text: "Tu valor no depende de la opinión ajena.", author: "Anónimo" },
-    { text: "Lo que das vuelve multiplicado.", author: "Anónimo" },
-    { text: "Agradece más, preocúpate menos.", author: "Anónimo" },
-    { text: "La vida es más simple cuando dejas ir lo que pesa.", author: "Anónimo" },
-    { text: "Cada paso que das hacia adelante cuenta.", author: "Anónimo" },
-    { text: "La paz interior es tu mayor tesoro.", author: "Anónimo" },
-    { text: "Nunca es tarde para comenzar de nuevo.", author: "Anónimo" },
-    { text: "La gratitud te conecta con lo esencial.", author: "Anónimo" },
-    { text: "Perdonar no te hace débil; te hace libre.", author: "Anónimo" },
-    { text: "Nunca olvides cuánto vales.", author: "Anónimo" },
-    { text: "Acepta tu proceso, respétalo y abrázalo.", author: "Anónimo" },
-    { text: "Lo que agradeces, permanece.", author: "Anónimo" },
-    { text: "El cambio empieza por dentro.", author: "Anónimo" },
-    { text: "La paz no se encuentra, se crea.", author: "Anónimo" },
-    { text: "Perdónate, estás aprendiendo.", author: "Anónimo" },
-    { text: "Agradecer es abrir la puerta a la abundancia.", author: "Anónimo" },
-    { text: "Tu corazón merece paz.", author: "Anónimo" },
-    { text: "No te rindas: lo que hoy duele, mañana te hará más fuerte.", author: "Anónimo" },
-    { text: "Llénate de amor y lo compartirás sin esfuerzo.", author: "Anónimo" },
-    { text: "Deja que tu vida sea un mensaje de paz.", author: "Anónimo" },
-    { text: "Encuentra tiempo para agradecer; siempre hay algo.", author: "Anónimo" },
-    { text: "El perdón sanea lo que el rencor intoxica.", author: "Anónimo" },
-    { text: "Tú eres tu hogar. Cuídate.", author: "Anónimo" },
-    { text: "Agradecer te cambia la energía.", author: "Anónimo" },
-    { text: "Camina con fe; la claridad llega después.", author: "Anónimo" },
-    { text: "La paz llega cuando te aceptas tal y como eres.", author: "Anónimo" },
-    { text: "Hoy elige avanzar, aunque sea despacio.", author: "Anónimo" },
-    { text: "Perdona para vivir liviano.", author: "Anónimo" },
-    { text: "La gratitud es la más elevada forma de pensamiento.", author: "Anónimo" },
-    { text: "La paz interior no tiene precio.", author: "Anónimo" },
-    { text: "Eres digno de amor, respeto y cosas buenas.", author: "Anónimo" },
-    { text: "Perdona tus errores; fueron parte del aprendizaje.", author: "Anónimo" },
-    { text: "Agradece incluso aquello que no salió como esperabas.", author: "Anónimo" },
-    { text: "La paz se construye cada día.", author: "Anónimo" },
-    { text: "Tu bienestar es una prioridad, no un lujo.", author: "Anónimo" },
-    { text: "La gratitud es semilla de alegría.", author: "Anónimo" },
-    { text: "El amor propio es un viaje, no un destino.", author: "Anónimo" },
-    { text: "Perdonar abre caminos que el rencor cierra.", author: "Anónimo" },
-    { text: "La base de toda educación es la confianza y el amor.", author: "Don Bosco" },
-    { text: "La alegría es la señal de un corazón que ama a Dios.", author: "Don Bosco" },
-    { text: "Haz el bien mientras puedas y no dejes para mañana el bien que puedas hacer hoy.", author: "Don Bosco" },
-    { text: "La santidad consiste en estar siempre alegres.", author: "Don Bosco" },
-    { text: "Dios nos puso en este mundo para los demás.", author: "Don Bosco" },
-    { text: "El mejor regalo que puedes hacer a un joven es tu tiempo.", author: "Don Bosco" },
-    { text: "Confía en María Auxiliadora y verás lo que son milagros.", author: "Don Bosco" },
-    { text: "No basta amar a los jóvenes; es necesario que ellos se den cuenta de que son amados.", author: "Don Bosco" },
-    { text: "La paciencia gana todas las batallas.", author: "Don Bosco" },
-    { text: "Quien tiene a Dios lo tiene todo.", author: "Don Bosco" },
-    { text: "Sé bueno, y verás qué feliz serás.", author: "Don Bosco" },
-    { text: "El trabajo y la templanza harán florecer a una sociedad.", author: "Don Bosco" },
-    { text: "La educación es cosa del corazón.", author: "Don Bosco" },
-    { text: "La caridad bien entendida comienza por uno mismo, pero no debe quedarse ahí.", author: "Don Bosco" },
-    { text: "Nunca digas: no tengo tiempo. Todos tenemos tiempo para hacer el bien.", author: "Don Bosco" },
-    { text: "Haz el bien y deja hablar a los demás.", author: "Don Bosco" },
-    { text: "La humildad es la base de todas las virtudes.", author: "Don Bosco" },
-    { text: "La amabilidad abre puertas que la fuerza no puede.", author: "Don Bosco" },
-    { text: "Casa que tiene jóvenes alegres, casa que está llena de Dios.", author: "Don Bosco" },
-    { text: "El amor supera cualquier dificultad.", author: "Don Bosco" },
-    { text: "Coraje, adelante siempre, jamás atrás.", author: "Don Bosco" },
-    { text: "La oración es la fuerza del cristiano.", author: "Don Bosco" },
-    { text: "La educación es una cuestión del corazón y Dios es su dueño.", author: "Don Bosco" },
-    { text: "María lo ha hecho todo.", author: "Don Bosco" },
-    { text: "La pureza hace hermosos a los jóvenes.", author: "Don Bosco" },
-    { text: "El buen cristiano y honrado ciudadano transforma el mundo.", author: "Don Bosco" },
-    { text: "No hay jóvenes malos, solo jóvenes que no saben que pueden ser buenos.", author: "Don Bosco" },
-    { text: "Si quieres hacer el bien, hazlo con alegría.", author: "Don Bosco" },
-    { text: "La dulzura en el hablar, la caridad en el obrar y la paciencia en el sufrir.", author: "Don Bosco" },
-    { text: "La amistad es un tesoro que se conquista con el corazón.", author: "Don Bosco" },
-    { text: "En la vida hay que hacer poco ruido y mucho bien.", author: "Don Bosco" },
-    { text: "Confía en Dios y no tengas miedo.", author: "Don Bosco" },
-    { text: "La música y la alegría son herramientas para acercar el corazón a Dios.", author: "Don Bosco" },
-    { text: "Alegraos siempre en el Señor.", author: "Don Bosco" },
-    { text: "Todo lo hago por amor a los jóvenes.", author: "Don Bosco" },
-    { text: "Un joven que reza es un joven que vence.", author: "Don Bosco" },
-    { text: "El cariño es la llave del corazón.", author: "Don Bosco" },
-    { text: "La bondad es lo que hace grande a una persona.", author: "Don Bosco" },
-    { text: "Con trabajo y templanza llegarás lejos.", author: "Don Bosco" },
-    { text: "Dios te ama como eres.", author: "Don Bosco" },
-    { text: "Hagan todo por amor, nada a la fuerza.", author: "Don Bosco" },
-    { text: "No pierdas la paz por nada del mundo.", author: "Don Bosco" },
-    { text: "La fe mueve montañas, pero el amor mueve corazones.", author: "Don Bosco" },
-    { text: "El buen humor es prueba de un alma que confía.", author: "Don Bosco" },
-    { text: "María Auxiliadora camina en esta casa.", author: "Don Bosco" },
-    { text: "La obediencia trae bendiciones.", author: "Don Bosco" },
-    { text: "Es imposible educar sin amar.", author: "Don Bosco" },
-    { text: "Nunca te canses de hacer el bien.", author: "Don Bosco" },
-    { text: "La esperanza es el motor del corazón.", author: "Don Bosco" },
-    { text: "Amar es servir.", author: "Don Bosco" }
-];
-;
+        // BASE DE DATOS DE 200 FRASES (Autoestima, Gratitud, Paz, Servicio, Motivación)
+        const frasesDatabase = [
+            // --- MOTIVACIÓN Y ÉXITO ---
+            { text: "El único modo de hacer un gran trabajo es amar lo que haces.", author: "Steve Jobs" },
+            { text: "No cuentes los días, haz que los días cuenten.", author: "Muhammad Ali" },
+            { text: "La felicidad no es algo que pospones para el futuro; es algo que diseñas para el presente.", author: "Jim Rohn" },
+            { text: "Cree que puedes y casi lo habrás logrado.", author: "Theodore Roosevelt" },
+            { text: "Lo que no te mata te hace más fuerte.", author: "Friedrich Nietzsche" },
+            { text: "La vida es 10% lo que te ocurre y 90% cómo reaccionas a ello.", author: "Charles R. Swindoll" },
+            { text: "No busques el momento perfecto, solo busca el momento y hazlo perfecto.", author: "Anónimo" },
+            { text: "El éxito es la suma de pequeños esfuerzos repetidos día tras día.", author: "Robert Collier" },
+            { text: "Tu tiempo es limitado, así que no lo desperdicies viviendo la vida de alguien más.", author: "Steve Jobs" },
+            { text: "La mejor venganza es un éxito masivo.", author: "Frank Sinatra" },
+            { text: "Si puedes soñarlo, puedes hacerlo.", author: "Walt Disney" },
+            { text: "A veces la adversidad es lo que necesitas encarar para ser exitoso.", author: "Zig Ziglar" },
+            { text: "La disciplina es el puente entre metas y logros.", author: "Jim Rohn" },
+            { text: "El fracaso es solo la oportunidad de comenzar de nuevo de forma más inteligente.", author: "Henry Ford" },
+            { text: "El secreto para salir adelante es comenzar.", author: "Mark Twain" },
+            { text: "No dejes que el miedo a perder sea mayor que la emoción de ganar.", author: "Robert Kiyosaki" },
+            { text: "La acción es la clave fundamental para todo éxito.", author: "Pablo Picasso" },
+            { text: "El éxito consiste en ir de fracaso en fracaso sin perder el entusiasmo.", author: "Winston Churchill" },
+            { text: "Tu actitud, no tu aptitud, determinará tu altitud.", author: "Zig Ziglar" },
+            { text: "Si no te gusta algo, cámbialo. Si no puedes cambiarlo, cambia tu actitud.", author: "Maya Angelou" },
+            { text: "Cae siete veces y levántate ocho.", author: "Proverbio japonés" },
+            { text: "Todo lo que siempre has querido está al otro lado del miedo.", author: "George Addair" },
+            { text: "Las oportunidades no pasan, las creas.", author: "Chris Grosser" },
+            { text: "No he fracasado. Solo he encontrado 10,000 formas que no funcionan.", author: "Thomas Edison" },
+            { text: "La única forma de hacer lo imposible es creer que es posible.", author: "Charles Kingsleigh" },
+            { text: "El futuro pertenece a quienes creen en la belleza de sus sueños.", author: "Eleanor Roosevelt" },
+            { text: "No esperes. El tiempo nunca será el justo.", author: "Napoleon Hill" },
+            { text: "La perseverancia es fallar 19 veces y tener éxito la vigésima.", author: "Julie Andrews" },
+            { text: "El éxito no es la clave de la felicidad. La felicidad es la clave del éxito.", author: "Albert Schweitzer" },
+            { text: "Haz lo que puedes, con lo que tienes, donde estés.", author: "Theodore Roosevelt" },
+            { text: "La vida es una aventura atrevida o no es nada.", author: "Helen Keller" },
+            { text: "El pesimista ve dificultad en toda oportunidad. El optimista ve oportunidad en toda dificultad.", author: "Winston Churchill" },
+            { text: "No dejes que lo que no puedes hacer interfiera con lo que puedes hacer.", author: "John Wooden" },
+            { text: "El éxito suele llegar a quienes están demasiado ocupados para buscarlo.", author: "Henry David Thoreau" },
+            { text: "Si no diseñas tu propio plan de vida, es probable que caigas en el plan de otra persona.", author: "Jim Rohn" },
+            { text: "La creatividad es la inteligencia divirtiéndose.", author: "Albert Einstein" },
+            { text: "Haz de cada día tu obra maestra.", author: "John Wooden" },
+            { text: "Lo único imposible es aquello que no intentas.", author: "Anónimo" },
+            { text: "La motivación es lo que te pone en marcha. El hábito es lo que hace que sigas.", author: "Jim Ryun" },
+            { text: "Para tener éxito, tu deseo de éxito debe ser mayor que tu miedo al fracaso.", author: "Bill Cosby" },
+            { text: "Sueña en grande y atrévete a fallar.", author: "Norman Vaughan" },
+            { text: "La vida se encoge o se expande en proporción a tu coraje.", author: "Anaïs Nin" },
+            { text: "El hombre que mueve montañas empieza apartando piedrecitas.", author: "Confucio" },
+            { text: "No te detengas cuando estés cansado. Detente cuando hayas terminado.", author: "Marilyn Monroe" },
+            { text: "Nunca es demasiado tarde para ser lo que podrías haber sido.", author: "George Eliot" },
+            { text: "La mejor forma de predecir el futuro es crearlo.", author: "Peter Drucker" },
 
+            // --- AUTOESTIMA Y AMOR PROPIO ---
+            { text: "Cree en ti mismo y en todo lo que eres.", author: "Christian D. Larson" },
+            { text: "Amarse a uno mismo es el comienzo de un romance de por vida.", author: "Oscar Wilde" },
+            { text: "Tú mismo, tanto como cualquier otro en el universo entero, mereces tu amor y afecto.", author: "Buda" },
+            { text: "Nadie puede hacerte sentir inferior sin tu consentimiento.", author: "Eleanor Roosevelt" },
+            { text: "La confianza en uno mismo es el primer secreto del éxito.", author: "Ralph Waldo Emerson" },
+            { text: "No necesitas ser perfecto para inspirar a otros. Deja que se inspiren en cómo manejas tus imperfecciones.", author: "Anónimo" },
+            { text: "Sé tú mismo, todos los demás ya están ocupados.", author: "Oscar Wilde" },
+            { text: "Tu valor no disminuye en base a la incapacidad de alguien de ver tu valía.", author: "Anónimo" },
+            { text: "Háblate a ti mismo como harías con alguien a quien amas.", author: "Brené Brown" },
+            { text: "La belleza comienza en el momento en que decides ser tú misma.", author: "Coco Chanel" },
+            { text: "No te compares con nadie. Ten la cabeza bien alta y recuerda: no eres ni mejor ni peor, simplemente eres tú.", author: "Anónimo" },
+            { text: "Querer ser otra persona es malgastar la persona que eres.", author: "Kurt Cobain" },
+            { text: "Eres suficiente tal como eres.", author: "Meghan Markle" },
+            { text: "La relación más importante que jamás tendrás es la relación contigo mismo.", author: "Steve Maraboli" },
+            { text: "Lo que piensas de ti mismo es mucho más importante que lo que los demás piensan de ti.", author: "Séneca" },
+            { text: "Acéptate a ti mismo, ámate a ti mismo y sigue adelante.", author: "Roy T. Bennett" },
+            { text: "Eres más valiente de lo que crees, más fuerte de lo que pareces y más inteligente de lo que piensas.", author: "A.A. Milne" },
+            { text: "La autoestima baja es como conducir por la vida con el freno de mano puesto.", author: "Maxwell Maltz" },
+            { text: "No es lo que te llamas, es a qué respondes.", author: "W.C. Fields" },
+            { text: "El respeto empieza por uno mismo.", author: "Anónimo" },
+            { text: "Tú eres tu propio límite o tu propia libertad.", author: "Anónimo" },
+            { text: "Invierte en ti mismo. Es la mejor inversión que harás.", author: "Anónimo" },
+            { text: "No permitas que las sombras de tu pasado apaguen la luz de tu futuro.", author: "Anónimo" },
+            { text: "Eres una obra de arte en progreso.", author: "Anónimo" },
+            { text: "La confianza no viene de tener siempre la razón, sino de no tener miedo a equivocarse.", author: "Peter T. McIntyre" },
+            { text: "Cuida tu cuerpo, es el único lugar que tienes para vivir.", author: "Jim Rohn" },
+            { text: "Ser dueño de nuestra historia y amarnos a nosotros mismos a través de ese proceso es lo más valiente que jamás haremos.", author: "Brené Brown" },
+            { text: "No apagues tu luz para que otros se sientan cómodos.", author: "Anónimo" },
+            { text: "Tu única competencia es quien eras ayer.", author: "Anónimo" },
+            { text: "Valórate lo suficiente como para alejarte de lo que no te sirve, no te hace crecer o no te hace feliz.", author: "Anónimo" },
+            { text: "Eres el protagonista de tu propia vida. No dejes que nadie escriba tu guion.", author: "Anónimo" },
+            { text: "Perdonarse a uno mismo es el primer paso hacia la sanación.", author: "Anónimo" },
+            { text: "Tu paz interior es más importante que tratar de entender por qué algo sucedió.", author: "Anónimo" },
+            { text: "Eres un diamante, nadie puede romperte.", author: "Anónimo" },
+            { text: "Hoy elijo ser feliz conmigo mismo.", author: "Anónimo" },
+            { text: "La verdadera belleza es una luz en el corazón.", author: "Kahlil Gibran" },
+            { text: "No busques aprobación externa, busca tu propia aceptación.", author: "Anónimo" },
+            { text: "Tu potencial es infinito.", author: "Anónimo" },
+            { text: "Ámate primero y todo lo demás caerá en su lugar.", author: "Lucille Ball" },
+            { text: "Confía en tu intuición, es tu alma susurrándote.", author: "Anónimo" },
+            
+            // --- GRATITUD ---
+            { text: "La gratitud convierte lo que tenemos en suficiente.", author: "Anónimo" },
+            { text: "No es la felicidad lo que nos hace agradecidos; es la gratitud lo que nos hace felices.", author: "David Steindl-Rast" },
+            { text: "Siente gratitud por lo que tienes y terminarás teniendo más.", author: "Oprah Winfrey" },
+            { text: "La gratitud es la memoria del corazón.", author: "Jean Baptiste Massieu" },
+            { text: "Empieza cada día con un corazón agradecido.", author: "Anónimo" },
+            { text: "La gratitud da sentido a nuestro pasado, trae paz al presente y crea una visión para el mañana.", author: "Melody Beattie" },
+            { text: "Agradece por las lecciones, incluso cuando vienen envueltas en dolor.", author: "Anónimo" },
+            { text: "La gratitud es la flor más bella que brota del alma.", author: "Henry Ward Beecher" },
+            { text: "Cuando te enfocas en lo bueno, lo bueno mejora.", author: "Abraham Hicks" },
+            { text: "La gratitud transforma el caos en orden y la confusión en claridad.", author: "Anónimo" },
+            { text: "Gracias a la vida que me ha dado tanto.", author: "Violeta Parra" },
+            { text: "Disfruta de las pequeñas cosas, porque un día mirarás atrás y te darás cuenta de que eran las grandes cosas.", author: "Robert Brault" },
+            { text: "La gratitud es un imán para los milagros.", author: "Anónimo" },
+            { text: "Agradece lo que eres ahora y sigue luchando por lo que quieres ser mañana.", author: "Anónimo" },
+            { text: "La gratitud es la llave que abre la puerta a la abundancia.", author: "Anónimo" },
+            { text: "El agradecimiento es la parte principal de un hombre de bien.", author: "Francisco de Quevedo" },
+            { text: "Solo hay dos maneras de vivir tu vida. Una es como si nada fuera un milagro. La otra es como si todo fuera un milagro.", author: "Albert Einstein" },
+            { text: "Agradece a la llama su luz, pero no olvides el pie del candil que paciente la sostiene.", author: "Rabindranath Tagore" },
+            { text: "La gratitud silenciosa no sirve de mucho a nadie.", author: "Gertrude Stein" },
+            { text: "Hoy es un regalo, por eso se llama presente.", author: "Anónimo" },
+            { text: "Agradece a tus enemigos, porque son tus mejores maestros.", author: "Dalai Lama" },
+            { text: "La gratitud no es solo la más grande de las virtudes, sino la madre de todas las demás.", author: "Cicerón" },
+            { text: "Dar gracias es un acto de humildad y reconocimiento.", author: "Anónimo" },
+            { text: "La gratitud abre la plenitud de la vida.", author: "Melody Beattie" },
+            { text: "Agradece las puertas cerradas, las desviaciones y los obstáculos; te protegen de caminos que no eran para ti.", author: "Anónimo" },
+            { text: "Quien no agradece lo poco, no agradecerá lo mucho.", author: "Proverbio estonio" },
+            { text: "La gratitud es la riqueza del alma.", author: "Anónimo" },
+            { text: "Despierta con determinación, acuéstate con satisfacción y gratitud.", author: "Anónimo" },
+            { text: "Un corazón agradecido es un imán para los milagros.", author: "Anónimo" },
+            { text: "La gratitud cambia los dolores de la memoria en una alegría tranquila.", author: "Dietrich Bonhoeffer" },
+            { text: "Agradece cada respiración, es un regalo de vida.", author: "Anónimo" },
+            { text: "La gratitud es el antídoto contra el miedo.", author: "Anónimo" },
+            { text: "Sé agradecido por los momentos difíciles, te ayudan a crecer.", author: "Anónimo" },
+            { text: "La gratitud es la forma más elevada de pensamiento.", author: "G.K. Chesterton" },
+            { text: "Nunca dejes que las cosas que quieres te hagan olvidar las cosas que tienes.", author: "Anónimo" },
+            { text: "La gratitud es un puente hacia la felicidad.", author: "Anónimo" },
+            { text: "Agradece la lluvia que riega las flores de tu alma.", author: "Anónimo" },
+            { text: "La gratitud hace que lo que tenemos sea suficiente.", author: "Anónimo" },
+            { text: "Agradecer es multiplicar las bendiciones.", author: "Anónimo" },
+            { text: "La gratitud es el vino del alma. Embriágate.", author: "Rumi" },
+
+            // --- PAZ INTERIOR ---
+            { text: "La paz viene de adentro. No la busques afuera.", author: "Buda" },
+            { text: "No dejes que el comportamiento de otros destruya tu paz interior.", author: "Dalai Lama" },
+            { text: "La paz comienza con una sonrisa.", author: "Madre Teresa" },
+            { text: "Si quieres paz, no hables con tus amigos, habla con tus enemigos.", author: "Desmond Tutu" },
+            { text: "La paz no es la ausencia de conflictos, es la capacidad de manejar el conflicto por medios pacíficos.", author: "Ronald Reagan" },
+            { text: "Quien tiene paz en su conciencia, lo tiene todo.", author: "Don Bosco" },
+            { text: "Para tener paz mental, renuncia a querer tener la razón siempre.", author: "Anónimo" },
+            { text: "La paz es libertad en tranquilidad.", author: "Cicerón" },
+            { text: "Cuando haces las paces con la autoridad, te conviertes en la autoridad.", author: "Jim Morrison" },
+            { text: "La paz es un viaje de mil millas y se debe dar un paso a la vez.", author: "Lyndon B. Johnson" },
+            { text: "Perdona a los demás, no porque merezcan el perdón, sino porque tú mereces la paz.", author: "Anónimo" },
+            { text: "La tranquilidad perfecta consiste en el buen orden de la mente, en tu propio reino.", author: "Marco Aurelio" },
+            { text: "No hay camino para la paz, la paz es el camino.", author: "Mahatma Gandhi" },
+            { text: "La paz es el resultado de reentrenar tu mente para procesar la vida tal como es, en lugar de como crees que debería ser.", author: "Wayne Dyer" },
+            { text: "Mantén la calma y la serenidad en medio del caos.", author: "Anónimo" },
+            { text: "La paz interior comienza el momento en que eliges no permitir que otra persona o evento controle tus emociones.", author: "Pema Chödrön" },
+            { text: "El silencio es a veces la mejor respuesta.", author: "Dalai Lama" },
+            { text: "Respira. Suelta. Y recuerda que este momento es el único que sabes que tienes seguro.", author: "Oprah Winfrey" },
+            { text: "La preocupación no quita los problemas de mañana, quita la paz de hoy.", author: "Anónimo" },
+            { text: "La paz no se puede mantener por la fuerza; solo se puede lograr mediante la comprensión.", author: "Albert Einstein" },
+            { text: "Sé el cambio que quieres ver en el mundo.", author: "Mahatma Gandhi" },
+            { text: "La serenidad no es estar a salvo de la tormenta, sino encontrar la paz en medio de ella.", author: "Anónimo" },
+            { text: "Donde hay fe, hay amor; donde hay amor, hay paz.", author: "Anónimo" },
+            { text: "La paz es un regalo que te das a ti mismo.", author: "Anónimo" },
+            { text: "No puedes encontrar la paz evitando la vida.", author: "Virginia Woolf" },
+            { text: "La paz es la música del alma.", author: "Anónimo" },
+            { text: "Estar en paz es mejor que tener razón.", author: "Anónimo" },
+            { text: "La paz mundial comienza con la paz interior.", author: "Dalai Lama" },
+            { text: "Busca la paz y síguela.", author: "Salmos" },
+            { text: "La paz es el lenguaje del universo.", author: "Anónimo" },
+            { text: "Deja ir lo que no puedes controlar y encontrarás la paz.", author: "Anónimo" },
+            { text: "La calma es un superpoder.", author: "Anónimo" },
+            { text: "La paz es ver el amanecer y saber que tienes otra oportunidad.", author: "Anónimo" },
+            { text: "Tu paz es tu mayor riqueza.", author: "Anónimo" },
+            { text: "Nada puede traerte paz sino tú mismo.", author: "Ralph Waldo Emerson" },
+            { text: "La paz es el arte de dejar ir.", author: "Anónimo" },
+            { text: "El perdón es la llave de la paz.", author: "Anónimo" },
+            { text: "Siembra paz y cosecharás felicidad.", author: "Anónimo" },
+            { text: "La paz es un estado mental, no una situación.", author: "Anónimo" },
+
+            // --- SERVICIO Y AYUDA A LOS DEMÁS ---
+            { text: "El que no vive para servir, no sirve para vivir.", author: "Madre Teresa" },
+            { text: "La mejor manera de encontrarte a ti mismo es perderte en el servicio a los demás.", author: "Mahatma Gandhi" },
+            { text: "Nadie es inútil en este mundo mientras pueda aliviar la carga de sus semejantes.", author: "Charles Dickens" },
+            { text: "Hemos venido a este mundo como hermanos; caminemos, pues, dándonos la mano.", author: "William Shakespeare" },
+            { text: "Dar es la mayor comunicación.", author: "Madre Teresa" },
+            { text: "Solo una vida vivida para los demás es una vida que vale la pena.", author: "Albert Einstein" },
+            { text: "El servicio a los demás es el alquiler que pagas por tu habitación aquí en la tierra.", author: "Muhammad Ali" },
+            { text: "Nadie se ha vuelto pobre por dar.", author: "Ana Frank" },
+            { text: "La felicidad no resulta de lo que obtenemos, sino de lo que damos.", author: "Ben Carson" },
+            { text: "Ayudar a una persona no cambiará el mundo entero, pero puede cambiar el mundo para esa persona.", author: "Anónimo" },
+            { text: "Sé el arcoíris en la nube de alguien más.", author: "Maya Angelou" },
+            { text: "Haz el bien sin mirar a quién.", author: "Ricardo Palma" },
+            { text: "El verdadero servicio es hacer algo por alguien que nunca podrá pagártelo.", author: "Anónimo" },
+            { text: "La generosidad consiste en dar más de lo que puedes, y el orgullo en tomar menos de lo que necesitas.", author: "Khalil Gibran" },
+            { text: "Manos que dan, nunca estarán vacías.", author: "Anónimo" },
+            { text: "Servir es amar en acción.", author: "Anónimo" },
+            { text: "El propósito de la vida humana es servir y mostrar compasión y voluntad de ayudar a los demás.", author: "Albert Schweitzer" },
+            { text: "Pequeños actos de bondad, multiplicados por cientos de personas, pueden transformar el mundo.", author: "Howard Zinn" },
+            { text: "La solidaridad es la ternura de los pueblos.", author: "Gioconda Belli" },
+            { text: "No podemos ayudar a todos, pero todos pueden ayudar a alguien.", author: "Ronald Reagan" },
+            { text: "El servicio es la alegría de saber que has sido útil.", author: "Anónimo" },
+            { text: "Cuando sirves a los demás, te sirves a ti mismo.", author: "Anónimo" },
+            { text: "La grandeza de una persona se mide por su voluntad de servir.", author: "Anónimo" },
+            { text: "Servir es la forma más alta de liderazgo.", author: "Anónimo" },
+            { text: "El mundo cambia con tu ejemplo, no con tu opinión.", author: "Paulo Coelho" },
+            { text: "Un acto de bondad, por pequeño que sea, nunca se desperdicia.", author: "Esopo" },
+            { text: "Si quieres felicidad por una hora, toma una siesta. Si quieres felicidad por una vida, ayuda a alguien.", author: "Proverbio Chino" },
+            { text: "La caridad empieza en casa, pero no debe terminar allí.", author: "Thomas Fuller" },
+            { text: "Da siempre lo mejor de ti, y lo mejor vendrá.", author: "Madre Teresa" },
+            { text: "El amor crece dándose.", author: "Elbert Hubbard" },
+            { text: "Servir ennoblece.", author: "Anónimo" },
+            { text: "Sé útil y serás feliz.", author: "Anónimo" },
+            { text: "La bondad es el lenguaje que los sordos pueden oír y los ciegos pueden ver.", author: "Mark Twain" },
+            { text: "No hay ejercicio mejor para el corazón que agacharse y levantar a alguien.", author: "John Holmes" },
+            { text: "El egoísmo empobrece, el servicio enriquece.", author: "Anónimo" },
+            { text: "Para recibir, primero hay que dar.", author: "Anónimo" },
+            { text: "La empatía es ver con los ojos de otro, escuchar con los oídos de otro y sentir con el corazón de otro.", author: "Alfred Adler" },
+            { text: "Servir es sembrar esperanza.", author: "Anónimo" },
+            { text: "Tu legado es cada vida que tocas.", author: "Oprah Winfrey" },
+            { text: "Haz todo el bien que puedas, por todos los medios que puedas.", author: "John Wesley" }
+        ];
+
+        // LÓGICA DEL SISTEMA
+        window.onerror = function(msg, url, lineNo, columnNo, error) {
+            document.getElementById('quote-text').innerText = "⚠️ Error crítico";
+            document.getElementById('error-message').classList.remove('hidden');
+            console.error("Error detectado:", msg, "Línea:", lineNo);
+            return false;
+        };
+
+        const STORAGE_KEY = 'frases_vistas_indices_v4'; // Versión 4
         let fraseActual = null;
 
-        // --- LÓGICA DE ALMACENAMIENTO LOCAL ---
-        const STORAGE_KEY = 'frases_vistas_indices';
-        
         function obtenerIndicesVistos() {
-            const guardado = localStorage.getItem(STORAGE_KEY);
-            return guardado ? JSON.parse(guardado) : [];
+            try {
+                const guardado = localStorage.getItem(STORAGE_KEY);
+                return guardado ? JSON.parse(guardado) : [];
+            } catch (e) { return []; }
         }
 
         function guardarIndiceVisto(index) {
@@ -335,11 +362,16 @@
         }
 
         function actualizarContador(vistosCount) {
+            if (typeof frasesDatabase === 'undefined' || !Array.isArray(frasesDatabase)) return;
             document.getElementById('counter').innerText = vistosCount;
             document.getElementById('total').innerText = frasesDatabase.length;
         }
 
         function obtenerFraseAleatoria() {
+            if (typeof frasesDatabase === 'undefined' || !Array.isArray(frasesDatabase)) {
+                throw new Error("La base de datos de frases está corrupta o vacía.");
+            }
+
             let vistos = obtenerIndicesVistos();
             const todosLosIndices = frasesDatabase.map((_, i) => i);
             let disponibles = todosLosIndices.filter(index => !vistos.includes(index));
@@ -353,10 +385,7 @@
             return { frase: frasesDatabase[indiceAleatorio], index: indiceAleatorio };
         }
 
-        // --- LÓGICA DE RESPUESTA ---
-
         function registrarRespuesta(respuesta) {
-            // UI: Ocultar botones, mostrar carga
             document.getElementById('feedback-buttons').classList.add('hidden');
             const messageEl = document.getElementById('feedback-message');
             const errorEl = document.getElementById('feedback-error');
@@ -368,11 +397,11 @@
                 frase: fraseActual ? fraseActual.text : "Desconocida"
             };
 
-            if (GOOGLE_SCRIPT_URL === 'TU_URL_DE_APPS_SCRIPT_AQUI') {
-                console.warn("Falta configurar la URL de Google Apps Script");
+            if (!GOOGLE_SCRIPT_URL || GOOGLE_SCRIPT_URL.includes('TU_URL_DE_APPS_SCRIPT_AQUI')) {
+                console.warn("Falta configurar la URL del script");
                 setTimeout(() => {
-                    messageEl.innerText = "Guardado (Modo Demo Local).";
-                }, 500);
+                    messageEl.innerText = "Guardado (Modo Demo - Sin Conexión).";
+                }, 1000);
                 return;
             }
 
@@ -390,33 +419,37 @@
                 }
             })
             .catch(error => {
-                console.error("Error:", error);
+                console.error("Error al enviar:", error);
                 messageEl.classList.add('hidden');
                 errorEl.classList.remove('hidden');
-                errorEl.innerText = "Error de conexión.";
+                errorEl.innerText = "No se pudo conectar con Google Sheets.";
             });
         }
 
         function mostrarNuevaFrase() {
-            document.getElementById('feedback-buttons').classList.remove('hidden');
-            document.getElementById('feedback-message').classList.add('hidden');
-            document.getElementById('feedback-error').classList.add('hidden');
+            try {
+                document.getElementById('feedback-buttons').classList.remove('hidden');
+                document.getElementById('feedback-message').classList.add('hidden');
+                document.getElementById('feedback-error').classList.add('hidden');
+                document.getElementById('error-message').classList.add('hidden');
 
-            const container = document.getElementById('quote-container');
-            const quoteText = document.getElementById('quote-text');
-            const quoteAuthor = document.getElementById('quote-author');
+                const container = document.getElementById('quote-container');
+                container.classList.remove('fade-in');
+                void container.offsetWidth; 
+                container.classList.add('fade-in');
 
-            container.classList.remove('fade-in');
-            void container.offsetWidth; 
-            container.classList.add('fade-in');
+                const resultado = obtenerFraseAleatoria();
+                fraseActual = resultado.frase; 
+                
+                document.getElementById('quote-text').innerText = `"${resultado.frase.text}"`;
+                document.getElementById('quote-author').innerText = `- ${resultado.frase.author || 'Anónimo'}`;
 
-            const resultado = obtenerFraseAleatoria();
-            fraseActual = resultado.frase; 
-            
-            quoteText.innerText = `"${resultado.frase.text}"`;
-            quoteAuthor.innerText = `- ${resultado.frase.author || 'Anónimo'}`;
-
-            guardarIndiceVisto(resultado.index);
+                guardarIndiceVisto(resultado.index);
+            } catch (e) {
+                console.error("Error fatal:", e);
+                document.getElementById('quote-text').innerText = "Error cargando frases.";
+                document.getElementById('error-message').classList.remove('hidden');
+            }
         }
 
         window.onload = () => {
